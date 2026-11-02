@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>フランクフルト販売管理</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--card:#f1f0ec;--acc:#c8402a;--mut:#777;--line:#d3d1ca;--warn:#b26a00}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1b1a;--fg:#f0f0ee;--card:#2a2a28;--mut:#9a9a94;--line:#444}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--fg);font:16px/1.3 system-ui,-apple-system,"Hiragino Sans",sans-serif}
+#app{height:100dvh;padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);display:grid;grid-template-columns:1.35fr 1fr;gap:10px;padding-top:calc(env(safe-area-inset-top,0px)+8px);padding-left:calc(env(safe-area-inset-left,0px)+8px);padding-right:calc(env(safe-area-inset-right,0px)+8px);padding-bottom:calc(env(safe-area-inset-bottom,0px)+8px)}
+.pane{display:flex;flex-direction:column;min-height:0;background:var(--card);border-radius:14px;padding:10px 12px;overflow:hidden}
+.pane-disp{background:transparent;border:2px dashed var(--line)}
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.head h2{margin:0;font-size:clamp(16px,2.2vw,20px);flex:0 0 auto}
+.iconbtns{margin-left:auto;display:flex;gap:6px}
+.iconbtns button{padding:8px 12px;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:8px}
+.tot{display:flex;gap:6px;flex:1 1 auto}
+.tot div{flex:1;background:var(--bg);border-radius:8px;padding:4px 6px;text-align:center;min-width:0}
+.tot b{display:block;font-size:clamp(15px,2vw,20px)}.tot span{font-size:11px;color:var(--mut)}
+h3{margin:6px 0 4px;font-size:12px;color:var(--mut);font-weight:600}
+.grid{display:grid;gap:5px;flex:0 0 auto}
+.g-t{grid-template-columns:repeat(6,1fr)}.g-q{grid-template-columns:repeat(6,1fr)}.g-w{grid-template-columns:repeat(6,1fr)}
+.grid button{min-height:clamp(34px,5.2vh,52px);font-size:clamp(15px,2vw,20px);font-weight:600;border:2px solid var(--line);background:var(--bg);color:var(--fg);border-radius:9px;position:relative;padding:0}
+.grid button.sel{background:var(--acc);border-color:var(--acc);color:#fff}
+.grid button.rc::after{content:"";position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:var(--warn)}
+.grid button:disabled{opacity:.2}
+.gtwrap{overflow-y:auto;flex:0 1 auto}
+#go{width:100%;margin-top:8px;min-height:clamp(46px,7vh,60px);font-size:clamp(18px,2.6vw,22px);font-weight:700;border:0;border-radius:11px;background:var(--acc);color:#fff;flex:0 0 auto}
+#go:disabled{opacity:.35}#go.warn{background:var(--warn)}
+.sum{margin:4px 0;font-size:clamp(14px,1.8vw,17px);text-align:center;flex:0 0 auto}
+.reclabel{display:flex;justify-content:space-between;align-items:baseline;margin-top:6px}
+.reclabel span{font-size:11px;color:var(--mut)}
+#rec{flex:1;min-height:0;overflow-y:auto;margin-top:2px}
+.row{display:flex;align-items:center;gap:6px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.row .m{flex:1;font-size:14px}.row.x{opacity:.4;text-decoration:line-through}
+.row button,.btn{padding:6px 9px;font-size:13px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--fg)}
+.row select{font-size:13px;padding:5px}
+#dq{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.dqrow{display:flex;align-items:baseline;gap:12px;padding:10px 14px;border:2px solid var(--line);border-radius:12px;background:var(--card)}
+.dqrow.new{border-color:var(--acc);animation:flash 2.5s ease-out 1}
+@keyframes flash{from{background:var(--acc)}to{background:var(--card)}}
+.dqrow b{font-size:clamp(24px,4vw,40px)}
+.dqrow .q{font-size:clamp(20px,3.5vw,34px);font-weight:800;margin-left:auto}
+.dqrow .tm{font-size:13px;color:var(--mut)}
+.win-badge{font-size:clamp(13px,1.8vw,16px);font-weight:700;color:var(--mut)}
+.hint{color:var(--mut);font-size:12px;text-align:center;flex:0 0 auto;margin:6px 0 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:10}
+.modal.hide{display:none}
+.mcard{background:var(--bg);color:var(--fg);border-radius:14px;padding:16px;width:min(560px,92vw);max-height:88vh;overflow-y:auto}
+.mcard h2{margin:0 0 8px}
+.mclose{float:right;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
+table{width:100%;border-collapse:collapse}td,th{padding:5px;border-bottom:1px solid var(--line);text-align:right;font-size:14px}th:first-child,td:first-child{text-align:left}
+.bar{display:inline-block;height:9px;background:var(--acc);border-radius:3px;vertical-align:middle}
+label{display:flex;justify-content:space-between;align-items:center;padding:7px 0}
+input[type=number]{width:80px;font-size:16px;padding:5px}
+textarea{width:100%;height:100px;font-size:12px}
+.hide{display:none}
+.sync{font-size:12px;color:var(--mut)}.sync.bad{color:var(--warn);font-weight:700}
+body:not([data-role="kaikei"]):not([data-role="teikyo"]) #app{display:none}
+body[data-role="kaikei"] #dispPane{display:none}
+body[data-role="teikyo"] #posPane,body[data-role="teikyo"] #recPane{display:none}
+body[data-role="teikyo"] #app{grid-template-columns:1fr}
+body[data-role="teikyo"] .dqrow b{font-size:clamp(36px,7vw,72px)}
+body[data-role="teikyo"] .dqrow .q{font-size:clamp(30px,6vw,60px)}
+body[data-role="teikyo"] .win-badge{font-size:clamp(16px,2.6vw,26px)}
+.start{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center}
+.start.hide{display:none}
+.start h1{margin:0;font-size:clamp(22px,4vw,34px)}
+.start button{width:min(420px,80vw);min-height:90px;font-size:28px;font-weight:700;border-radius:14px;border:0;background:var(--acc);color:#fff}
+</style></head><body>
+<div class="start" id="start"><h1>フランクフルト販売管理</h1><p>同期用の合言葉(会計と提供の両方の端末で同じものを入力。英数字6文字以上)</p>
+<input id="topic" style="font-size:24px;padding:10px;width:min(420px,80vw);text-align:center" autocapitalize="off" autocomplete="off"><div id="topicMsg" class="sync bad"></div>
+<p>この端末の役割を選んでください</p><button data-pick="kaikei">会計</button><button data-pick="teikyo">提供</button></div>
+<div id="app">
+<section class="pane" id="posPane">
+  <div class="head"><h2>会計</h2><div class="tot" id="tot1"></div>
+    <div class="iconbtns"><span class="sync" id="syncK"></span><button id="openSum">集計</button><button id="openSet">設定</button><button id="home">役割</button></div></div>
+  <h3>番号札(自動で次の番号 / ●は直近使用)</h3>
+  <div class="gtwrap"><div class="grid g-t" id="gt"></div></div>
+  <h3>本数</h3><div class="grid g-q" id="gq"></div>
+  <h3>当たり本数(くじ。なければ0のまま)</h3><div class="grid g-w" id="gw"></div>
+  <div class="sum" id="sm"></div>
+  <button id="go" disabled>登録</button>
+</section>
+<section class="pane" id="recPane">
+  <div class="reclabel"><h3>直近の注文</h3><span>タップで訂正・取消</span></div>
+  <div id="rec"></div>
+</section>
+<section class="pane pane-disp" id="dispPane">
+  <div class="head"><h2>提供表示</h2><div class="tot" id="tot3"></div><span class="sync" id="syncT"></span><button class="btn" id="home2">役割</button></div>
+  <div id="dq"></div>
+</section>
+</div>
+
+<div class="modal hide" id="modalSum"><div class="mcard">
+  <button class="mclose" data-close="modalSum">閉じる</button><h2>集計</h2>
+  <div class="tot" id="tot2" style="margin:8px 0"></div>
+  <h3>時間帯別</h3><table id="hr"></table>
+</div></div>
+
+<div class="modal hide" id="modalSet"><div class="mcard">
+  <button class="mclose" data-close="modalSet">閉じる</button><h2>設定</h2>
+  <label>番号札の枚数<input type="number" id="c-t" min="1" max="99"></label>
+  <label>単価(円)<input type="number" id="c-p" min="0"></label>
+  <label>セールモード(ONで下の数式を使って金額を計算)<input type="checkbox" id="c-sale"></label>
+  <div style="font-size:12px;color:var(--mut);line-height:1.5">金額の数式(a=定価、x=購入本数)<br>例:<code>x>=2 ? a*x/2 : a*x</code>(2本以上半額)<br>例:<code>a*(x-floor(x/3))</code>(3本ごとに1本無料)<br>例:<code>a*x - 100*(x-1)</code>(定価300円なら 1本300円・2本500円・3本700円…と、2本目から100円引き)</div>
+  <input type="text" id="c-f" autocapitalize="off" autocomplete="off" spellcheck="false" style="width:100%;font-size:16px;padding:8px;margin:6px 0 2px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:7px;font-family:ui-monospace,monospace">
+  <div id="fMsg" class="sync"></div>
+  <label>直近とみなす分数<input type="number" id="c-r" min="1"></label>
+  <h3>CSV</h3>
+  <button class="btn" id="csv">CSVを表示・コピー</button> <button class="btn" id="csvdl">CSVをダウンロード</button>
+  <textarea id="ta" class="hide"></textarea>
+  <h3>全データ削除</h3><button class="btn" id="rst">全データ削除</button>
+</div></div>
+
+<div class="modal hide" id="modalConfirm"><div class="mcard">
+  <h2>この内容で登録しますか?</h2>
+  <div id="confirmBody" style="font-size:20px;line-height:1.6;margin:10px 0"></div>
+  <div style="display:flex;gap:10px;margin-top:10px">
+    <button class="btn" id="confirmCancel" style="flex:1;padding:14px;font-size:16px">キャンセル</button>
+    <button id="confirmOk" style="flex:1;padding:14px;font-size:16px;font-weight:700;border:0;border-radius:9px;background:var(--acc);color:#fff">確定して登録</button>
+  </div>
+</div></div>
+
+<div class="modal hide" id="modalQty"><div class="mcard">
+  <h2 id="qtyModalTitle">本数を入力</h2>
+  <input type="number" id="qtyModalInput" min="0" style="font-size:26px;width:100%;padding:10px;margin:10px 0">
+  <div style="display:flex;gap:10px">
+    <button class="btn" id="qtyModalCancel" style="flex:1;padding:14px;font-size:16px">キャンセル</button>
+    <button id="qtyModalOk" style="flex:1;padding:14px;font-size:16px;font-weight:700;border:0;border-radius:9px;background:var(--acc);color:#fff">OK</button>
+  </div>
+</div></div>
+
+<script>
+const K='kf_state_v1';
+let S={orders:[],seq:0,cfg:{tickets:30,price:300,recentMin:10,saleMode:false,saleFormula:'x>=2 ? a*x/2 : a*x'}};
+try{const r=localStorage.getItem(K);if(r){const p=JSON.parse(r);S={...S,...p,cfg:{...S.cfg,...p.cfg}}}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(3,'0');
+const two=n=>String(n).padStart(2,'0');
+const hm=t=>{const d=new Date(t);return d.getHours()+':'+two(d.getMinutes())};
+const NTFY='https://ntfy.sh/kfsale-';
+let role=null,remote=[],remoteCfg={},rm={},topic='',recvErr='',usePoll=false,recvRun=false,recvGen=0,lastId='all',rt=null,failSend=false,recvOk=false,recvFail=false,syncing=false;
+let dirty={};try{dirty=JSON.parse(localStorage.getItem('kf_dirty')||'{}')}catch(e){}
+const saveDirty=()=>{try{localStorage.setItem('kf_dirty',JSON.stringify(dirty))}catch(e){}};
+const src=()=>role==='teikyo'?remote.slice().sort((a,b)=>a.seq-b.seq):S.orders;
+const act=()=>src().filter(o=>o.status==='active');
+const FN_OK=['a','x','floor','ceil','round','min','max','abs'];
+function compileFormula(f){
+  f=String(f||'').trim();
+  if(!f)throw new Error('式が空です');
+  if(!/^[0-9a-z_+\-*\/%().,<>=!&|?:\s]*$/i.test(f))throw new Error('使えない文字があります');
+  const bad=(f.match(/[a-z_]\w*/gi)||[]).find(i=>!FN_OK.includes(i));
+  if(bad)throw new Error('「'+bad+'」は使えません(使えるのは a, x, floor, ceil, round, min, max, abs)');
+  let fn;try{fn=new Function('a','x','floor','ceil','round','min','max','abs','return ('+f+')')}catch(e){throw new Error('式の書き方が正しくありません')}
+  const run=(a,x)=>fn(a,x,Math.floor,Math.ceil,Math.round,Math.min,Math.max,Math.abs);
+  for(const x of [1,2,3,5,10]){let v;try{v=run(200,x)}catch(e){throw new Error('式の書き方が正しくありません')}
+    if(typeof v!=='number'||!isFinite(v))throw new Error('x='+x+' のとき数値になりません');
+    if(v<0)throw new Error('x='+x+' のとき金額がマイナスになります')}
+  return run;
+}
+const calcAmount=(qty,price,sale)=>{
+  if(sale){try{const v=compileFormula(S.cfg.saleFormula)(price,qty);if(isFinite(v)&&v>=0)return Math.round(v)}catch(e){}}
+  return qty*price};
+function autoT(){const l=act()[act().length-1];return l?(l.ticket%S.cfg.tickets)+1:1}
+let selT=autoT(),selQ=null,selW=0,dup=false,editId=null,cxId=null,rstArm=false,last=null,qtyModalTarget=null;
+function stats(list){return{n:list.length,q:list.reduce((a,o)=>a+o.qty,0),b:list.reduce((a,o)=>a+(o.bonus||0),0),y:list.reduce((a,o)=>a+o.amount,0)}}
+function tot(el){const s=stats(act());$(el).innerHTML=`<div><b>${s.q}</b><span>有料本数</span></div><div><b>${s.b}</b><span>当たり</span></div><div><b>¥${s.y.toLocaleString()}</b><span>売上</span></div><div><b>${s.n}</b><span>件</span></div>`}
+function render(){
+  tot('tot1');tot('tot2');tot('tot3');
+  const now=Date.now(),rc={};
+  act().forEach(o=>{if(now-o.ts<S.cfg.recentMin*60000)rc[o.ticket]=1});
+  $('gt').innerHTML=Array.from({length:S.cfg.tickets},(_,i)=>i+1).map(n=>`<button data-t="${n}" class="${selT===n?'sel':''} ${rc[n]?'rc':''}">${n}</button>`).join('');
+  const presetQ=[1,2,3,4,5],isCustomQ=selQ!==null&&!presetQ.includes(selQ);
+  $('gq').innerHTML=presetQ.map(n=>`<button data-q="${n}" class="${selQ===n?'sel':''}">${n}</button>`).join('')+`<button id="qCustom" class="${isCustomQ?'sel':''}">${isCustomQ?selQ+'本':'任意入力'}</button>`;
+  const presetW=[0,1,2,3,4],isCustomW=!presetW.includes(selW);
+  $('gw').innerHTML=presetW.map(n=>`<button data-w="${n}" ${n>(selQ||0)?'disabled':''} class="${selW===n?'sel':''}">${n}</button>`).join('')+`<button id="wCustom" class="${isCustomW?'sel':''}">${isCustomW?selW+'本':'任意入力'}</button>`;
+  $('sm').textContent=selQ?`${selT}番 ${selQ+selW}本提供${selW?`(当たり${selW})`:''} ¥${calcAmount(selQ,S.cfg.price,S.cfg.saleMode).toLocaleString()}`:'本数を選んでください(番号札は自動:'+selT+'番)';
+  const go=$('go');go.disabled=!(selT&&selQ);go.className=dup?'warn':'';
+  go.textContent=dup?'直前と同じです。もう一度押すと登録':'登録';
+  $('rec').innerHTML=S.orders.slice().reverse().map(o=>{
+    const x=o.status!=='active';let btns='';
+    if(!x){
+      if(editId===o.id)btns=`番<input type="number" id="et" min="1" max="${S.cfg.tickets}" value="${o.ticket}" style="width:52px">購入<input type="number" id="es" min="1" value="${o.qty}" style="width:56px">当<input type="number" id="ew" min="0" value="${o.bonus||0}" style="width:52px"><button data-ok="${o.id}">OK</button>`;
+      else btns=`<button data-ed="${o.id}">訂正</button><button data-cx="${o.id}">${cxId===o.id?'本当に取消':'取消'}</button>`;
+    }
+    return `<div class="row ${x?'x':''}"><div class="m"><b>#${pad(o.seq)}</b> ${o.ticket}番 ${o.qty}本${o.bonus?`+当${o.bonus}`:''} <small>${hm(o.ts)}${x?' 取消':''}</small></div>${btns}</div>`}).join('')||'<div style="color:var(--mut)">まだ注文がありません</div>';
+  const dqlist=act().slice(-(role==='teikyo'?(remoteCfg.tickets||30):S.cfg.tickets)).reverse();
+  $('dq').innerHTML=dqlist.length?dqlist.map((o,i)=>{const w=o.bonus||0;return `<div class="dqrow ${i===0?'new':''}"><b>${o.ticket}番</b><span class="tm">#${pad(o.seq)} ${hm(o.ts)}</span><span class="win-badge">購入${o.qty}${w?` 当たり${w}`:''}</span><span class="q">${o.qty+w}本</span></div>`}).join(''):'<p style="text-align:center;color:var(--mut)">まだ注文がありません</p>';
+  const H={};act().forEach(o=>{const h=new Date(o.ts).getHours();(H[h]=H[h]||[]).push(o)});
+  const hs=Object.keys(H).map(Number);const lo=Math.min(10,...hs),hi=Math.max(15,...hs);
+  const mx=Math.max(1,...Object.values(H).map(l=>stats(l).q));
+  let t='<tr><th>時間</th><th>件</th><th>有料</th><th>当たり</th><th>売上</th><th></th></tr>';
+  for(let h=lo;h<=hi;h++){const s=stats(H[h]||[]);t+=`<tr><td>${h}時台</td><td>${s.n}</td><td>${s.q}</td><td>${s.b}</td><td>¥${s.y.toLocaleString()}</td><td style="text-align:left"><span class="bar" style="width:${Math.round(s.q/mx*80)}px"></span></td></tr>`}
+  $('hr').innerHTML=t;
+  fPrev();renderSync();
+}
+function reg(){
+  if(!selT||!selQ)return;
+  const now=Date.now(),l=[...act()].pop();
+  if(!dup&&l&&l.ticket===selT&&l.qty===selQ&&(l.bonus||0)===selW&&now-l.ts<15000){dup=true;render();return}
+  dup=false;
+  const o={id:'O'+now.toString(36).toUpperCase(),seq:++S.seq,ticket:selT,qty:selQ,bonus:selW,price:S.cfg.price,saleMode:S.cfg.saleMode,amount:calcAmount(selQ,S.cfg.price,S.cfg.saleMode),ts:now,status:'active'};
+  S.orders.push(o);save();markDirty(o.id,'set');selT=autoT();selQ=null;selW=0;render();
+}
+function openConfirm(){
+  if(!selT||!selQ)return;
+  const expect=autoT(),warn=selT!==expect;
+  $('confirmBody').innerHTML=`<div>${selT}番</div><div>購入 ${selQ}本${selW?` + 当たり ${selW}本`:''} = 合計 ${selQ+selW}本</div><div>¥${calcAmount(selQ,S.cfg.price,S.cfg.saleMode).toLocaleString()}${S.cfg.saleMode&&calcAmount(selQ,S.cfg.price,true)!==selQ*S.cfg.price?'(セール価格)':''}</div>${warn?`<div style="color:var(--warn);font-weight:700;margin-top:8px">⚠ 番号札が連続していません(前回の続きは${expect}番の予定でした)。番号札を確認してください。</div>`:''}`;
+  $('modalConfirm').classList.remove('hide');
+}
+function openQtyModal(kind){
+  qtyModalTarget=kind;
+  $('qtyModalTitle').textContent=kind==='q'?'本数を入力':'当たり本数を入力';
+  $('qtyModalInput').value=kind==='q'?(selQ||''):(selW||'');
+  $('modalQty').classList.remove('hide');
+  setTimeout(()=>{const i=$('qtyModalInput');i.focus();i.select()},50);
+}
+document.addEventListener('click',e=>{
+  const pk=e.target.closest('[data-pick]');if(pk){const c=$('topic').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(c.length<6){$('topicMsg').textContent='合言葉は英数字6文字以上で入力してください';return}
+    if(c!==topic){recvGen++;recvRun=false;rm={};remote=[];recvOk=false;topic=c;try{localStorage.setItem('kf_topic',c)}catch(_){}}
+    location.hash=pk.dataset.pick;setRole(pk.dataset.pick);return}
+  if(e.target.id==='home'||e.target.id==='home2'){location.hash='';setRole(null);return}
+  const close=e.target.closest('[data-close]');if(close){$(close.dataset.close).classList.add('hide');return}
+  if(e.target.id==='confirmCancel'){$('modalConfirm').classList.add('hide');return}
+  if(e.target.id==='confirmOk'){$('modalConfirm').classList.add('hide');reg();return}
+  if(e.target.id==='openSum'){$('modalSum').classList.remove('hide');render();return}
+  if(e.target.id==='openSet'){$('modalSet').classList.remove('hide');return}
+  if(e.target.classList.contains('modal')){e.target.classList.add('hide');return}
+  const b=e.target.closest('button,input');if(!b)return;const d=b.dataset;
+  if(d.t){selT=+d.t;dup=false;render()}
+  else if(d.q){selQ=+d.q;if(selW>selQ)selW=selQ;dup=false;render()}
+  else if(d.w!==undefined){selW=+d.w;dup=false;render()}
+  else if(b.id==='go')openConfirm();
+  else if(b.id==='qCustom')openQtyModal('q');
+  else if(b.id==='wCustom')openQtyModal('w');
+  else if(b.id==='qtyModalCancel'){$('modalQty').classList.add('hide')}
+  else if(b.id==='qtyModalOk'){
+    const v=parseInt($('qtyModalInput').value);
+    if(qtyModalTarget==='q'){if(v>0){selQ=v;if(selW>selQ)selW=selQ;dup=false}}
+    else{if(v>=0){selW=Math.min(v,selQ||0);dup=false}}
+    $('modalQty').classList.add('hide');render();
+  }
+  else if(d.ed){editId=d.ed;render()}
+  else if(d.ok){const o=S.orders.find(x=>x.id===d.ok),nt=+$('et').value,v=+$('es').value,w=Math.min(+$('ew').value,v);editId=null;
+    if(v!==o.qty||w!==(o.bonus||0)||nt!==o.ticket){o.ticket=nt;o.qty=v;o.bonus=w;o.amount=calcAmount(v,o.price,o.saleMode);save();markDirty(o.id,'set')}render()}
+  else if(d.cx){if(cxId===d.cx){const o=S.orders.find(x=>x.id===d.cx);o.status='canceled';o.canceledAt=Date.now();cxId=null;save();markDirty(o.id,'set')}else{cxId=d.cx;setTimeout(()=>{cxId=null;render()},3000)}render()}
+  else if(b.id==='csv'||b.id==='csvdl'){
+    const rows=[['注文ID','通し番号','番号札','有料本数','当たり本数','提供本数','単価','金額','注文時刻','状態','取消時刻']].concat(S.orders.map(o=>[o.id,o.seq,o.ticket,o.qty,o.bonus||0,o.qty+(o.bonus||0),o.price,o.amount,new Date(o.ts).toLocaleString('ja-JP'),o.status==='active'?'有効':'取消',o.canceledAt?new Date(o.canceledAt).toLocaleString('ja-JP'):'']));
+    if(b.id==='csv'){const ta=$('ta');ta.value=rows.map(r=>r.join('\t')).join('\n');ta.classList.remove('hide');ta.select();try{navigator.clipboard.writeText(ta.value)}catch(_){}}
+    else{const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='frankfurt_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a);a.click();a.remove();}}
+  else if(b.id==='rst'){if(rstArm){S.orders.forEach(o=>dirty[o.id]='del');S.orders=[];S.seq=0;save();saveDirty();flush();selT=autoT();rstArm=false;b.textContent='全データ削除';render()}else{rstArm=true;b.textContent='本当に削除(もう一度押す)';setTimeout(()=>{rstArm=false;b.textContent='全データ削除'},4000)}}
+});
+const cfg=[['c-t','tickets'],['c-p','price'],['c-r','recentMin']];
+cfg.forEach(([id,k])=>{$(id).value=S.cfg[k];$(id).onchange=e=>{const v=parseInt(e.target.value);if(v>0){S.cfg[k]=v;save();markDirty('_cfg','cfg');selT=autoT();render()}}});
+let fErr='';
+function fPrev(){const m=$('fMsg');if(!m)return;
+  if(fErr){m.className='sync bad';m.textContent='⚠ '+fErr+'(この式は保存されていません。前の式を使用中)';return}
+  m.className='sync';
+  try{const f=compileFormula(S.cfg.saleFormula);m.textContent='定価¥'+S.cfg.price.toLocaleString()+' の場合: '+[1,2,3,4,5].map(x=>x+'本→¥'+Math.round(f(S.cfg.price,x)).toLocaleString()).join(' / ')}
+  catch(e){m.className='sync bad';m.textContent='⚠ 保存済みの式が使えません。通常価格で計算します'}}
+$('c-f').value=S.cfg.saleFormula;
+$('c-f').oninput=e=>{try{compileFormula(e.target.value);fErr='';S.cfg.saleFormula=e.target.value.trim();save()}catch(er){fErr=er.message}fPrev();render()};
+$('c-sale').checked=S.cfg.saleMode;$('c-sale').onchange=e=>{S.cfg.saleMode=e.target.checked;save();render()};
+const tUrl=()=>NTFY+topic;
+function markDirty(id,op){dirty[id]=op;saveDirty();flush()}
+async function flush(){
+  if(syncing||role!=='kaikei'||!topic)return;syncing=true;
+  try{for(const id of Object.keys(dirty)){const op=dirty[id];let m;
+    if(op==='del')m={t:'del',id};
+    else if(op==='cfg')m={t:'cfg',tickets:S.cfg.tickets,price:S.cfg.price};
+    else{const o=S.orders.find(x=>x.id===id);if(!o){delete dirty[id];continue}m={t:'set',o}}
+    const r=await fetch(tUrl(),{method:'POST',body:JSON.stringify(m)});
+    if(!r.ok)throw new Error(r.status);
+    delete dirty[id];saveDirty()}
+    failSend=false}catch(e){failSend=true}
+  syncing=false;renderSync();
+}
+function renderSync(){
+  const n=Object.keys(dirty).length,k=$('syncK'),t=$('syncT');
+  if(role==='kaikei'){const bad=failSend||n;k.className='sync'+(bad?' bad':'');k.textContent=failSend?`⚠ 送信できません(未送信${n}件)`:n?`送信中…(未送信${n}件)`:`● 同期済み(合言葉 ${topic})`}
+  if(role==='teikyo'){t.className='sync'+(recvOk?'':' bad');t.textContent=recvOk?`● 受信中(合言葉 ${topic})`:recvFail?`⚠ 接続できません(${recvErr})`:'接続中…'}
+}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function applyMsg(line){try{const d=JSON.parse(line);if(d.id)lastId=d.id;if(d.event!=='message')return;const m=JSON.parse(d.message);
+  if(m.t==='set')rm[m.o.id]=m.o;else if(m.t==='del')delete rm[m.id];else if(m.t==='cfg')remoteCfg=m;
+  remote=Object.values(rm);if(!rt)rt=setTimeout(()=>{rt=null;render()},150)}catch(e){}}
+async function startRecv(){
+  if(recvRun)return;recvRun=true;const gen=recvGen;lastId='all';
+  while(role==='teikyo'&&gen===recvGen){
+    let got=false;const ac=new AbortController();
+    const to=setTimeout(()=>{if(!got){usePoll=true;ac.abort()}},10000);
+    try{
+      const r=await fetch(tUrl()+'/json?since='+lastId+(usePoll?'&poll=1':''),{cache:'no-store',signal:ac.signal});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const rd=r.body.getReader(),dec=new TextDecoder();let buf='';
+      while(true){const {value,done}=await rd.read();if(done)break;
+        if(!got){got=true;clearTimeout(to);recvOk=true;recvFail=false;recvErr='';renderSync()}
+        buf+=dec.decode(value,{stream:true});let i;
+        while((i=buf.indexOf('\n'))>=0){applyMsg(buf.slice(0,i));buf=buf.slice(i+1)}}
+      if(!got){recvOk=true;recvFail=false;recvErr='';renderSync()}
+    }catch(e){recvOk=false;recvFail=true;recvErr=(e&&e.name==='AbortError')?'応答なし':String((e&&e.message)||e)}
+    clearTimeout(to);renderSync();
+    await sleep(usePoll?6000:3000);
+  }
+  recvRun=false;
+}
+function initSync(){
+  if(!topic)return;
+  if(role==='kaikei'){const k='kf_pushed_'+topic;if(!localStorage.getItem(k)){S.orders.forEach(o=>dirty[o.id]='set');dirty['_cfg']='cfg';saveDirty();try{localStorage.setItem(k,'1')}catch(e){}}flush()}
+  if(role==='teikyo')startRecv();
+}
+function setRole(r){role=r||null;document.body.dataset.role=role||'';$('start').classList.toggle('hide',!!role);
+  if(role){initSync()}render()}
+window.addEventListener('hashchange',()=>{const h=location.hash.replace('#','');setRole(topic&&(h==='kaikei'||h==='teikyo')?h:null)});
+setInterval(flush,5000);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='qtyModalInput'){e.preventDefault();$('qtyModalOk').click()}});
+window.addEventListener('storage',e=>{if(e.key===K){try{const p=JSON.parse(e.newValue);S={...S,...p,cfg:{...S.cfg,...p.cfg}}}catch(_){}}render()});
+topic=localStorage.getItem('kf_topic')||'';$('topic').value=topic||Math.random().toString(36).slice(2,10);
+setInterval(render,4000);{const h=location.hash.replace('#','');setRole(topic&&(h==='kaikei'||h==='teikyo')?h:null)}
+</script></body></html>
